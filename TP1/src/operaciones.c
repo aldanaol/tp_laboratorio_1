@@ -11,57 +11,6 @@
 #include <string.h>
 #define BTC 4606954.55
 
-//Pedimos los km//
-
-/**
- * @brief solicita al usuario ingresar los km
- * @param km guarda los km ingresados
- * @return retorna los km ingresados
- */
-
-float pedirKm(){
-
-
-	float km;
-	printf("\nIngrese la cantidad de KM: ");
-	scanf("\n%f",&km);
-
-	return km;
-}
-
-//Pedimos el precio de Aerolineas/
-
-/**
- * @brief pide al usuario ingresar el precio de Aerolineas
- * @param precioAA guarda el precio ingresado
- * @return retorna el precio ingresado
- */
-
-float pedirPrecioAA(){
-
-	float precioAA;
-	printf("\nIngrese el precio del vuelo de Aerolineas: ");
-	scanf("\n%f",&precioAA);
-
-	return precioAA;
-}
-
-//Pecimos el precio de Latam//
-
-/**
- * @brief pide al usuario que ingrese el precio de Latam
- * @param precioLatam guarda el precio ingresado
- * @return retorna el precio
- */
-
-float pedirPrecioLatam(){
-
-	float precioLatam;
-	printf("\nIngrese el precio del vuelo de Latam: ");
-	scanf("\n%f", &precioLatam);
-
-	return precioLatam;
-}
 
 //Calculamos los costos//
 

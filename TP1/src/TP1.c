@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "operaciones.h"
+#include "Utn_Get.h"
 
 int main (void){
 
@@ -30,15 +31,15 @@ int main (void){
 		case 1:
 			if(flagKm==0)
 			{
-				km=pedirKm();
+				km=PedirFloat("Ingrese los km","Error,intente nuevamente",1,100000000000);
 				flagKm=1;
 			}
 			break;
 		case 2:
 			if (flagKm==1)
 			{
-				precioAA=pedirPrecioAA();
-				precioLatam=pedirPrecioLatam();
+				precioAA=PedirFloat("ingrese el precio de AA","Error,intente nuevamente",1,1000000);
+				precioLatam=PedirFloat("ingrese el precio de AA","Error,intente nuevamente",1,1000000);
 				flagPrecio=1;
 			}
 			break;
