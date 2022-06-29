@@ -12,691 +12,1081 @@
 #include "Passenger.h"
 #include "utn.h"
 #include "LinkedList.h"
+#include "Controller.h"
 
 
-static int Passenger_isValidNombre(char* nombre);
-static int Passenger_isValidApellido(char* apellido);
-static int Passenger_isValidPrecio(float* precio);
-static int Passenger_isValidCodigoVuelo(char* codigoVuelo);
-static int Passenger_isValidTipoPasajero(int* tipoPasajero);
-
-/**
-*\brief Solicita memoria para un bloque de estructura la estructura Passenger
-*\return Retorna la posicion de memoria a la estructura
-*/
-
-Passenger* Passenger_new()
+Passenger* passenger_new(void)
 {
-	return malloc(sizeof(Passenger));
+	return (Passenger*) malloc(sizeof(Passenger));
 }
 
-/**
-*\brief Transforma y establece todos los datos de la estructura con los parametros recibidos
-*\param char* idStr id del pasajero
-*\param char* nombreStr nombre del pasajero
-*\param char* apellidoStr apellido del pasajero
-*\param float* precioStr precio del vuelo
-*\param char* codigoStr codigo del vuelo
-*\param int* tipoPasajeroStr tipo de pasajero
-* \return Retorna la posicion de memoria a la estructura
-*/
-Passenger* Passenger_newParametros(int* idStr,char* nombreStr,char* apellidoStr,float* precioStr,char* codigoStr,int* tipoPasajeroStr)
-{
-	Passenger* retorno = NULL;
-	Passenger* this;
-	this = Passenger_new();
+Passenger* passenger_newParametrosTxt(char* id, char* name,char* lastName, char* price, char* flyCode, char* typePassenger,char* statusFlight){
 
-
-
-
-
+	Passenger* this = NULL;
+	this = passenger_new();
 	if(this != NULL)
 	{
-		if( Passenger_setId(this,idStr)==0 &&
-			Passenger_setNombre(this,nombreStr)==0 &&
-			Passenger_setApellido(this,apellidoStr)==0 &&
-			Passenger_setPrecio(this,precioStr)==0 &&
-			Passenger_setCodigoVuelo(this,codigoStr)==0 &&
-			Passenger_setTipoPasajero(this,tipoPasajeroStr)==0 )
+		if(passenger_setName(this, name) != 0 ||
+		   passenger_setLastName(this, lastName) != 0 ||
+		   passenger_setIdTxt(this,  id) != 0 ||
+		   passenger_setPriceTxt(this, price) != 0||
+		   passenger_setFlyCode(this, flyCode) != 0||
+		   passenger_setTypePassengerTxt(this, typePassenger) != 0 ||
+		   passenger_setStatusFlightTxt(this, statusFlight) != 0)
 		{
-			retorno = this;
-		}
-		else
-		{
-			Passenger_delete(this);
+			passenger_delete(this);
+			this = NULL;
 		}
 	}
-	return retorno;
+	return this;
+
 }
 
 
+Passenger* passenger_newParametros(char* name,char* lastName,  float price, char* flyCode, int typePassenger, int statusFlight){
 
-/**
-*\brief libera el espacio de memoria que ocupaba la estructura de Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*/
-void Passenger_delete(Passenger* this)
-{
+	Passenger* this = NULL;
+	this = passenger_new();
 	if(this != NULL)
 	{
-		free(this);
+		if(passenger_setName(this, name) != 0 ||
+		   passenger_setLastName(this, lastName) != 0 ||
+		   passenger_setPrice(this, price) != 0||
+		   passenger_setFlyCode(this, flyCode) != 0||
+		   passenger_setTypePassenger(this, typePassenger) != 0 ||
+		   passenger_setStatusFlight(this, statusFlight) != 0)
+		{
+			passenger_delete(this);
+			this = NULL;
+		}
 	}
+	return this;
 }
 
-/**
-*\brief setea un ID a un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  int id el entero que se establecera como id
-*\return retorna 0 si salio OK -1 si fallo
-*/
-
-int Passenger_setId(Passenger* this,int* id)
+int passenger_delete(Passenger* this)
 {
 	int retorno = -1;
 	if(this != NULL)
 	{
-		this->id = *id;
+		retorno = 0;
+		free(this);
+	}
+	return retorno;
+}
+
+int passenger_removeOne(LinkedList* pArrayListPassenger, int index){
+	int retorno = -1;
+	Passenger* pAux;
+	if(pArrayListPassenger != NULL && index > 0)
+	{
+		pAux = (Passenger*) ll_pop(pArrayListPassenger, index);
+		if(pAux != NULL)
+		{
+			passenger_delete(pAux);
+			retorno = 0;
+
+		}
+	}
+	return retorno;
+}
+int passenger_menuInt(char options[], int min, int max){
+
+	int opcion;
+	printf(options);
+	get_Entero("Opción: ", &opcion);
+	validarEnterosMaxMin("Ingrese una opción válida", &opcion, min, max);
+	return opcion;
+}
+
+char passenger_menuChar(char options[], char min, char max){
+
+	char opcion;
+	printf(options);
+	get_Char("\nOpción: ", &opcion);
+	opcion = toupper(opcion);
+	validarCharMaxMin("Ingrese una opción válida", &opcion, min, max);
+	return opcion;
+}
+
+int passenger_edit(LinkedList* pArrayListPassenger, LinkedList* pArrayFlyCodes,Passenger* this){
+	int retorno = -1;
+	char confirmar, opcionModificar;
+	char bufferNombre[NAME_LEN];
+	char bufferApellido[NAME_LEN];
+	char bufferTipopassenger[NAME_LEN];
+	char bufferCodigo[FLYCODE_LEN];
+	int bufferEstadoVuelo;
+	float bufferPrecio;
+
+	if(this != NULL)
+	{
+
+		passenger_printOne(pArrayListPassenger, this);
+
+		do{
+			opcionModificar =  passenger_menuChar("Menu modificación\nA. Nombre\nB. Apellido\nC. Precio\nD. Código de vuelo\nE. Tipo de passenger", 'A', 'E');
+			switch(opcionModificar)
+			{
+			case 'A':
+				get_Nombre("Nombre: ",bufferNombre, NAME_LEN );
+				if(!passenger_setName(this, bufferNombre))
+				{
+					printf("\nNombre modificado correctamente!");
+				}
+				else
+				{
+					printf("\nError: no se pudo modificar");
+				}
+				break;
+			case 'B':
+				get_Nombre("Apellido: ", bufferApellido, NAME_LEN);
+				if(!passenger_setLastName(this, bufferApellido))
+				{
+					printf("\nApellido modificado correctamente!");
+				}
+				else
+				{
+					printf("\nError: no se pudo modificar");
+				}
+				break;
+			case 'C':
+				get_Float("Precio: ", &bufferPrecio);
+				if(!passenger_setPrice(this, bufferPrecio))
+				{
+					printf("\nPrecio modificado correctamente!");
+				}
+				else
+				{
+					printf("\nError: no se pudo modificar");
+				}
+				break;
+			case 'D':
+				if(!flycode_promptFlyCode(pArrayFlyCodes,bufferCodigo, &bufferEstadoVuelo))
+				{
+					passenger_setFlyCode(this,bufferCodigo);
+					printf("\nCódigo de vuelo modificado correctamente!");
+				}
+				else
+				{
+					printf("\nError: no se pudo modificar");
+				}
+				break;
+			case 'E':
+				passenger_listTypesPassengers();
+				get_String("Tipo de passenger: ", bufferTipopassenger, 20);
+				if(!passenger_setTypePassengerTxt(this, bufferTipopassenger))
+				{
+					printf("\nTipo de passenger modificado correctamente!");
+				}
+				else
+				{
+					printf("\nError: no se pudo modificar");
+				}
+				break;
+
+			}
+
+			passenger_printOne(pArrayListPassenger, this);
+
+			get_Char("\n¿Quiere seguir modifcando [S/N]: ", &confirmar);
+			validarCharDosOpciones("Ingrese 'S' si quiere seguir modificando: ", &confirmar, 'S', 'N');
+			retorno = 0;
+		}while(confirmar == 'S');
+
+	}
+
+	return retorno;
+}
+
+int passenger_promptPassenger(LinkedList* pArrayFlyCodes, char* name,char* lastName, float* price, char* flyCode, int* typePassenger,int* statusFlight){
+
+	int retorno = -1;
+	char bufferTipo[128];
+	char bufferFlyCode[128];
+	int bufferEstado;
+	int tipo;
+
+	if(name != NULL && lastName != NULL && price != NULL && flyCode != NULL && typePassenger != NULL && statusFlight != NULL)
+	{
+		get_Nombre("Nombre: ", name, NAME_LEN);
+		get_Nombre("Apellido: ", lastName, NAME_LEN);
+		get_Float("Precio: ", price);
+		if(!flycode_promptFlyCode(pArrayFlyCodes, bufferFlyCode,&bufferEstado))
+		{
+			strcpy(flyCode, bufferFlyCode);
+			*statusFlight = bufferEstado;
+			printf("\nCodigo recibido");
+		}
+		passenger_listTypesPassengers();
+		do{
+			get_String("Tipo de passenger: ", bufferTipo, 20);
+			tipo = passenger_readTypePassengerChar(bufferTipo);
+		}while(tipo < 0);
+		*typePassenger = tipo;
+		retorno = 0;
+
+	}
+	return retorno;
+}
+
+int passenger_assignNextId(Passenger* this){
+	int retorno = -1;
+	char charId[10];
+	int intId;
+	FILE* pIdFile;
+	if(this != NULL)
+	{
+		pIdFile = fopen("idsPassengers.csv", "r");
+		if(pIdFile != NULL)
+		{
+			if(fscanf(pIdFile, "%[^\n]\n", charId) == 1)
+			{
+				intId = atoi(charId) + 1;
+				if(!passenger_setId(this,intId))
+				{
+					if(!passenger_loadLastId(intId))
+					{
+						retorno = 0;
+					}
+				}
+			}
+			fclose(pIdFile);
+		}
+	}
+
+	return retorno;
+}
+int passenger_loadLastId(int lastId){
+	int retorno = -1;
+
+	FILE* pIdFile;
+
+	pIdFile = fopen("idsPassengers.csv", "w");
+	if(pIdFile != NULL)
+	{
+		fprintf(pIdFile, "%d", lastId);
+		fclose(pIdFile);
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief obtiene un ID de un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  int id el entero al que se le pasara el id obtenido
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getId(Passenger* this,int* id)
+void passenger_listTypesPassengers(void)
 {
+
+	printf("| Type passenger  |\n|  EconomyClass   |\n| ExecutiveClass  |\n|   FirstClass    |");
+
+
+}
+
+void passenger_listStatusFlights(void)
+{
+
+	printf("| Status Flights  |\n|   En Horario    |\n|   Aterrizado    |\n|    En Vuelo     |\n|    Demorado     |");
+
+
+}
+
+
+int passenger_printOne(LinkedList* pArrayListPassenger, Passenger* this){
+
+	int retorno = -1;
+	float bufferPrecio;
+	char bufferNombre[128];
+	char bufferApellido[128];
+	char bufferFlyCode[128];
+	char bufferType[128];
+	char bufferStatus[128];
+	int bufferId;
+
+	if(this != NULL)
+	{
+		passenger_getId(this, &bufferId);
+		passenger_getName(this, bufferNombre);
+		passenger_getLastName(this, bufferApellido);
+		passenger_getPrice(this, &bufferPrecio);
+		passenger_getFlyCode(this, bufferFlyCode);
+		passenger_getTypePassengerTxt(this, bufferType);
+		passenger_getStatusFlightTxt(this,bufferStatus);
+
+		printf("\n| %-5d| %-18s| %-21s| $%-12.2f| %-11s| %-16s| %-16s|", bufferId, bufferNombre ,bufferApellido, bufferPrecio, bufferFlyCode,bufferType ,bufferStatus);
+	}
+	return retorno;
+}
+
+int passenger_setId(Passenger* this, int id){
+
+	int retorno = -1;
+	if(this != NULL && id >= 0)
+	{
+		this->id = id;
+		retorno = 0;
+	}
+
+	return retorno;
+}
+
+int passenger_setIdTxt(Passenger* this, char* id){
+
+	int retorno = -1;
+
+	if(this != NULL && id != NULL && esNumerica(id))
+	{
+		this->id = atoi(id);
+		retorno = 0;
+	}
+	return retorno;
+}
+
+int passenger_getId(Passenger* this, int* id){
+
 	int retorno = -1;
 	if(this != NULL && id != NULL)
 	{
 		*id = this->id;
 		retorno = 0;
 	}
+
+	return retorno;
+}
+int passenger_getIdTxt(Passenger* this, char* id){
+
+	int retorno = -1;
+
+	if(this != NULL && id != NULL)
+	{
+		sprintf(id, "%d", this->id);
+		retorno = 0;
+
+	}
 	return retorno;
 }
 
+int passenger_setName(Passenger* this, char* name){
 
-
-/**
-*\brief carga un nombre a un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  char* nombre es el string de caracteres que se pasara como nombre
-*\return retorna 0 si salio OK -1 si fallo
-*/
-
-int Passenger_setNombre(Passenger* this,char* nombre)
-{
 	int retorno = -1;
-	if(this != NULL && Passenger_isValidNombre(nombre))
+
+	if(this != NULL && name != NULL && esValidoNombre(name, NAME_LEN))
 	{
-		strcpy(this->nombre,nombre);
+		strcpy(this->name, name);
+		retorno = 0;
+	}
+	return retorno;
+}
+int passenger_setLastName(Passenger* this, char* lastName){
+	int retorno = -1;
+
+	if(this != NULL && lastName != NULL && esValidoNombre(lastName, NAME_LEN))
+	{
+		strcpy(this->lastName, lastName);
+		retorno = 0;
+	}
+	return retorno;
+}
+int passenger_getName(Passenger* this, char* name){
+	int retorno = -1;
+
+	if(this != NULL && name != NULL)
+	{
+		strcpy(name, this->name);
+		retorno = 0;
+	}
+	return retorno;
+}
+int passenger_getLastName(Passenger* this, char* lastName){
+	int retorno = -1;
+
+	if(this != NULL && lastName != NULL)
+	{
+		strcpy(lastName, this->lastName);
+		retorno = 0;
+	}
+	return retorno;
+}
+int passenger_setFlyCode(Passenger* this, char* flyCode){
+	int retorno = -1;
+
+	if(this != NULL && flyCode != NULL && flycode_isValidFlyCode(flyCode))
+	{
+		strcpy(this->flyCode, flyCode);
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief obtiene un nombre de un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  char* nombre es el string de caracteres al que se le pasara el nombre obtenido
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getNombre(Passenger* this,char* nombre)
-{
+int passenger_setFlyCodeStruct(Passenger* this, char* flyCode){
 	int retorno = -1;
-	if(this != NULL && nombre != NULL)
+
+	if(this != NULL && flyCode != NULL && flycode_isValidFlyCode(flyCode))
 	{
-		strcpy(nombre,this->nombre);
-		retorno = 0;
-	}
 
-	return retorno;
-}
-
-/**
-*\brief valida un nombre de un elemento de la estructura Passenger
-*\param  char* nombre es el string de caracteres que se le pasara
-*\return retorna 1 si salio OK -1 si fallo
-*/
-static int Passenger_isValidNombre(char* nombre)
-{
-	return 1;
-}
-
-int Passenger_setApellido(Passenger* this,char* apellido)
-{
-	int retorno = -1;
-	if(this != NULL && Passenger_isValidApellido(apellido))
-	{
-		strcpy(this->apellido,apellido);
+		strcpy(this->flyCode, flyCode);
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief obtiene un nombre de un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  char* nombre es el string de caracteres al que se le pasara el nombre obtenido
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getApellido(Passenger* this,char* apellido)
-{
+int passenger_getFlyCode(Passenger* this, char* flyCode){
 	int retorno = -1;
-	if(this != NULL && apellido != NULL)
+
+	if(this != NULL && flyCode != NULL)
 	{
-		strcpy(apellido,this->apellido);
-		retorno = 0;
-	}
-
-	return retorno;
-}
-
-/**
-*\brief valida un nombre de un elemento de la estructura Passenger
-*\param  char* nombre es el string de caracteres que se le pasara
-*\return retorna 1 si salio OK -1 si fallo
-*/
-static int Passenger_isValidApellido(char* apellido)
-{
-	return 1;
-}
-
-
-/**
-*\brief setea el precio a un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  float* precio el entero que se establecera como precio para ese precio
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_setPrecio(Passenger* this,float* precio)
-{
-	int retorno = -1;
-	if(this != NULL && Passenger_isValidPrecio(precio))
-	{
-		this->precio = *precio;
+		strcpy(flyCode, this->flyCode);
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief obtiene el precio de un elemento de la estructura Passenger y se las pasa a una variable
-*\param Passenger* this puntero a la estructura Passenger
-*\param  float precio el entero al que se le pasaras el precio
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getPrecio(Passenger* this,float* precio)
-{
+int passenger_setPrice(Passenger* this, float price){
 	int retorno = -1;
-	if(this != NULL && precio != NULL)
+
+	if(this != NULL && price > 0)
 	{
-		*precio = this->precio;
+		this->price = price;
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief valida que el precio sean numeros validos
-*\param  int precio el float que se validara
-*\return retorna 1 si salio OK -1 si fallo
-*/
-static int Passenger_isValidPrecio(float* precio)
-{
-	int retorno =-1;
-    int i=0;
+int passenger_setPriceTxt(Passenger* this, char* price){
+	int retorno = -1;
 
-     if(precio != NULL)
-     {
-        while(precio[i] != '\0')
-        {
-        if(precio[i]<'0' || precio[i]>'9')
-        break;
-        i++;
-     }
-        if(precio[i] == '\0')
-        retorno = 1;
-     }
-
+	if(this != NULL && price != NULL && esFlotante(price))
+	{
+		this->price = atof(price);
+		retorno = 0;
+	}
 	return retorno;
 }
 
-/**
-*\brief carga un codigo a un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  char codigoVuelo  es el codigo que se cargara al elemento de la estructura
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_setCodigoVuelo(Passenger* this,char* codigoVuelo)
-{
+int passenger_getPrice(Passenger* this, float* price){
 	int retorno = -1;
-		if(this != NULL && Passenger_isValidCodigoVuelo(codigoVuelo))
+
+	if(this != NULL && price != NULL)
+	{
+		*price = this->price;
+		retorno = 0;
+	}
+	return retorno;
+}
+
+int passenger_setTypePassengerTxt(Passenger* this, char* typePassenger){
+	int retorno = -1;
+	int auxTipo;
+
+	if(this != NULL && typePassenger != NULL)
+	{
+		auxTipo = passenger_readTypePassengerChar(typePassenger);
+		if(auxTipo != -1)
 		{
-			strcpy(this->codigoVuelo,codigoVuelo);
+			this->typePassenger = auxTipo;
 			retorno = 0;
 		}
-		return retorno;
+	}
+	return retorno;
 }
 
-/**
-*\brief obtine un codigo de vuelo de un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  char codigoVuelo es el codigo al que se le cargara el codigo del elemento de la estructura
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getCodigoVuelo(Passenger* this,char* codigoVuelo)
-{
+int passenger_setTypePassenger(Passenger* this, int typePassenger){
 	int retorno = -1;
-	if(this != NULL && codigoVuelo != NULL)
+
+	if(this != NULL && typePassenger > 0)
 	{
-		strcpy(codigoVuelo,this->codigoVuelo);
+		this->typePassenger = typePassenger;
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief valida que el codigo sea un char valido
-*\param  char es el codigo es el elemento que se validara
-*\return retorna 1 si salio OK -1 si fallo
-*/
-static int Passenger_isValidCodigoVuelo(char* codigoVuelo)
-{
+int passenger_getTypePassenger(Passenger* this, int* typePassenger){
+	int retorno = -1;
 
+	if(this != NULL && typePassenger != NULL)
+	{
+		*typePassenger = this->typePassenger;
+		retorno = 0;
+	}
 
-	return 1;
+	return retorno;
+}
+int passenger_getTypePassengerTxt(Passenger* this, char* typePassenger){
+	int retorno = -1;
+	char aux[50];
+	if(this != NULL && typePassenger != NULL)
+	{
+		passenger_readTypePassengerInt(this->typePassenger, aux);
+		if(aux != NULL)
+		{
+			strcpy(typePassenger, aux);
+			retorno = 0;
+		}
+
+	}
+	return retorno;
 }
 
-
-/**
-*\brief setea un tipo de pasajero a un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  int tipoPasajero el entero que se establecera como tipoPasajero
-*\return retorna 0 si salio OK -1 si fallo
-*/
-
-int Passenger_setTipoPasajero(Passenger* this,int* tipoPasajero)
-{
+int passenger_setStatusFlight(Passenger* this, int statusFlight){
 	int retorno = -1;
-	if(this != NULL && Passenger_isValidTipoPasajero(tipoPasajero))
+
+	if(this != NULL && statusFlight > 0)
 	{
-		this->tipoPasajero = *tipoPasajero;
+		this->statusFlight = statusFlight;
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief obtiene un tipoPasajero de un elemento de la estructura Passenger
-*\param Passenger* this puntero a la estructura Passenger
-*\param  int tipoPasajero el entero al que se le pasara el tipoPasajero obtenido
-*\return retorna 0 si salio OK -1 si fallo
-*/
-int Passenger_getTipoPasajero(Passenger* this,int* tipoPasajero)
-{
+int passenger_setStatusFlightTxt(Passenger* this, char* statusFlight){
 	int retorno = -1;
-	if(this != NULL && tipoPasajero != NULL)
+	int auxEstado;
+
+	if(this != NULL && statusFlight != NULL)
 	{
-		*tipoPasajero = this->tipoPasajero;
+		auxEstado = passenger_readStatusFlightChar(statusFlight);
+		if(auxEstado != -1)
+		{
+			this->statusFlight = auxEstado;
+			retorno = 0;
+		}
+	}
+	return retorno;
+}
+int passenger_getStatusFlight(Passenger* this, int* statusFlight){
+	int retorno = -1;
+
+	if(this != NULL && statusFlight != NULL)
+	{
+		*statusFlight = this->statusFlight;
 		retorno = 0;
 	}
 	return retorno;
 }
 
-/**
-*\brief Valida que el entero ingresado como tipoPasajero sea numerico
-*\param  int tipoPasajero el entero que se validara
-*\return retorna 1 si salio OK -1 si fallo
-*/
-static int Passenger_isValidTipoPasajero(int* tipoPasajero)
-{
-     int retorno =-1;
-     int i=0;
-
-     if(tipoPasajero != NULL)
-     {
-        while(tipoPasajero[i] != '\0')
-        {
-        if(tipoPasajero[i]<'0' || tipoPasajero[i]>'9')
-        break;
-        i++;
-     }
-        if(tipoPasajero[i] == '\0')
-        retorno = 1;
-     }
-
-	return retorno;
-}
-
-void Passenger_imprimirPassenger(Passenger* this)
-{
-
-    int id;
-    char nombre[QTY_CARACTERES];
-    char apellido[QTY_CARACTERES];
-    float precio;
-    char codigoVuelo[4];
-    int tipoPasajero;
-
-    Passenger_getId(this,&id);
-    Passenger_getNombre(this,nombre);
-    Passenger_getApellido(this,apellido);
-    Passenger_getPrecio(this,&precio);
-    Passenger_getCodigoVuelo(this,codigoVuelo);
-    Passenger_getTipoPasajero(this,&tipoPasajero);
-
-    printf("%5d %10s %10s %10f %10s %5d\n",id,nombre,apellido,precio,codigoVuelo,tipoPasajero);
-
-}
-
-/**
-*\brief compara los nombres de 2 pasajeros de la estructura Passenger
-*\param void* puntero a un pasajero de la estructura Passenger
-*\param void* puntero a un segundo pasajero de la estructura Passenger
-*\param return retorna 0 si los 2 pasajero tienen el mismo nombre
-*\param return retorna <0 si el nombre del primer pasajero esta antes que el del segundo pasajero
-*\param return retorna >0 si el nombre del primer pasajero esta despues que el del segundo pasajero
-*/
-
-int Passenger_ordenarPorNombre(void* pasajeroUno, void* pasajeroDos)
-{
-	Passenger* psUno;
-	Passenger* psDos;
-
-    psUno = (Passenger*)pasajeroUno;
-    psDos = (Passenger*)pasajeroDos;
-    return  strcmp(psUno->nombre,psDos->nombre);
-
-}
-
-/**
-*\brief compara los nombres de 2 pasajeros de la estructura Passenger
-*\param void* puntero a un pasajero de la estructura Passenger
-*\param void* puntero a un segundo pasajero de la estructura Passenger
-*\param return retorna 0 si los 2 pasajeros tienen el mismo codigo
-*\param return retorna 1 si el primer pasajero tiene un codigo menor  que el segundo pasajero
-*\param return retorna -1 si el primer pasajero tiene un codigo mayor que el segundo pasajero
-*/
-int Passenger_ordenarPorCodigo(void* pasajeroUno, void* pasajeroDos)
-{
-    int retorno = -1;
-    Passenger* psUno;
-    Passenger* psDos;
-
-    psUno = (Passenger*)pasajeroUno;
-    psDos = (Passenger*)pasajeroDos;
-    if(psUno->codigoVuelo < psDos->codigoVuelo)
-    {
-        retorno = 1;
-    }
-    else if(psUno->codigoVuelo == psDos->codigoVuelo)
-    {
-        retorno = 0;
-    }
-    return retorno;
-}
-
-
-int Passanger_ordenarPorTipo(void* pasajeroUno, void* pasajeroDos)
-{
-    int retorno = -1;
-    Passenger* psUno;
-    Passenger* psDos;
-
-    psUno = (Passenger*)pasajeroUno;
-    psDos = (Passenger*)pasajeroDos;
-    if(psUno->tipoPasajero < psDos->tipoPasajero)
-    {
-        retorno = 1;
-    }
-    else if(psUno->tipoPasajero == psDos->tipoPasajero)
-    {
-        retorno = 0;
-    }
-    return retorno;
-
-}
-
-/**
-*\brief menu de modificacion de los parametros cargados de un pasajero
-*\param void* puntero a la lista cargada con la estructura Passenger
-*\param return void
-*/
-void passenger_menuModificacion(LinkedList* pArrayListPassenger)
-{
-    int opcion;
-    int index;
-    Passenger* auxPassenger;
-
-
-    if(pArrayListPassenger != NULL)
-    {
-            printf("--------------INGRESO AL MENU DE MODIFICACION DE DATOS--------------\n\n");
-            system("pause");
-            index = Passenger_buscarPorId(pArrayListPassenger);
-            auxPassenger = ll_get(pArrayListPassenger,index);
-            system("pause");
-            Passenger_imprimirPassenger(auxPassenger);
-            printf(  "1-Modificar el nombre\n"
-            		 "2-Modificar el apellido\n"
-                     "3-Modificar el precio\n"
-                     "4-Modificar el codigo de vuelo\n"
-            		 "5-Modificar el tipo de pasajero\n"
-                     "6-Salir\n");
-
-            getInt(&opcion,"Ingrese la opcion a modificar:\n","ERROR OPCION INVALIDA\n",1,4,2);
-            do
-            {
-                switch(opcion)
-                {
-                case 1:
-                	Passenger_modificarNombre(auxPassenger);
-                    break;
-                case 2:
-                	Passenger_modificarNombre(auxPassenger);
-                    break;
-                case 3:
-                	Passenger_modificarPrecio(auxPassenger);
-                    break;
-                case 4:
-                	Passenger_modificarCodigo(auxPassenger);
-                	break;
-                case 5:
-                	Passenger_modificarTipo(auxPassenger);
-                	break;
-                case 6:
-                	printf("Volviendo al menu principal");
-                	break;
-                default:
-                	printf("Opcion incorrecta");
-                	break;
-                }
-
-            }while(opcion != 6);
-
-    }
-
-}
-
-/**
-*\brief menu de modificacion del nombre cargado de un pasajero
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_modificarNombre(Passenger* this)
-{
+int passenger_getStatusFlightTxt(Passenger* this, char* statusFlight){
 	int retorno = -1;
-	Passenger auxPassenger;
-	char respuesta;
-
-	    getString(auxPassenger.nombre,"Ingrese el nuevo nombre:\n","INGRESO INVALIDO\n",0,QTY_CARACTERES,2);
-	    getChar(&respuesta,"Desea modificar el nombre? Ingrese S para modificar\n","NOMBRE INVALIDO\n",'s','z',2);
-	    if(respuesta == 's')
-        {
-            strncpy(this->nombre,auxPassenger.nombre,QTY_CARACTERES);
-            //Passenger_setNombre(this,auxEmpleado.nombre);
-            printf("Se modifico el nombre correctamente\n");
-            retorno = 0;
-        }
-	return retorno;
-}
-
-/**
-*\brief menu de modificacion del apellido cargado de un pasajero
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_modificarApellido(Passenger* this)
-{
-	int retorno = -1;
-	Passenger auxPassenger;
-	char respuesta;
-
-	    getString(auxPassenger.apellido,"Ingrese el nuevo apellido:\n","INGRESO INVALIDO\n",0,QTY_CARACTERES,2);
-	    getChar(&respuesta,"Desea modificar el apellido? Ingrese S para modificar\n","NOMBRE INVALIDO\n",'s','z',2);
-	    if(respuesta == 's')
-        {
-            strncpy(this->apellido,auxPassenger.apellido,QTY_CARACTERES);
-            //Passenger_setApellido(this,auxPassenger.Apellido);
-            printf("Se modifico el apellido correctamente\n");
-            retorno = 0;
-        }
-	return retorno;
-}
-
-/**
-*\brief menu de modificacion del precio cargado
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_modificarPrecio(Passenger* this)
-{
-	int retorno = -1;
-	Passenger auxPassenger;
-	char respuesta;
-	if(this != NULL)
+	char aux[50];
+	if(this != NULL && statusFlight != NULL)
 	{
-	    getFloat(&auxPassenger.precio,"Ingrese el nuevo precio:\n","INGRESO INVALIDO\n",0,100000,2);
-	    getChar(&respuesta,"Desea modificar el precio? Ingrese S para modificar\n","PRECIO INVALIDO\n",'s','z',2);
-	    if(respuesta == 's')
-        {
-            this->precio = auxPassenger.precio;
-            printf("Se modifico el precio correctamente\n");
-            retorno = 0;
-        }
+		passenger_readStatusFlightInt(this->statusFlight, aux);
+		if(aux != NULL)
+		{
+			strcpy(statusFlight, aux);
+			retorno = 0;
+		}
 
 	}
-
-	return retorno;
-}
-/**
-*\brief menu de modificacion de codigo cargado
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_modificarCodigo(Passenger* this)
-{
-	int retorno = -1;
-	Passenger auxPassenger;
-	char respuesta;
-
-	    getString(auxPassenger.codigoVuelo,"Ingrese el nuevo codigo:\n","INGRESO INVALIDO\n",0,4,2);
-	    getChar(&respuesta,"Desea modificar el codigo? Ingrese S para modificar\n","CODIGO INVALIDO\n",0,4,2);
-	    if(respuesta == 's')
-        {
-            strncpy(this->codigoVuelo,auxPassenger.codigoVuelo,4);
-
-            printf("Se modifico el codigo correctamente\n");
-            retorno = 0;
-        }
 	return retorno;
 }
 
 
-/**
-*\brief menu de modificacion del tipo de pasajero
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_modificarTipo(Passenger* this)
-{
+int passenger_readStatusFlightChar(char* statusFlight){
 	int retorno = -1;
-	Passenger auxPassenger;
-	char respuesta;
-	if(this != NULL)
+	if(statusFlight != NULL)
 	{
-	    getInt(&auxPassenger.tipoPasajero,"Ingrese el tipo de pasajero:\n","INGRESO INVALIDO\n",1,3,2);
-	    getChar(&respuesta,"Desea modificar el tipo de pasajero? Ingrese S para modificar\n","INGRESO INVALIDO\n",'s','z',2);
-	    if(respuesta == 's')
-        {
-            this->tipoPasajero = auxPassenger.tipoPasajero;
-            printf("Se modifico el tipo de pasajero\n");
-            retorno = 0;
-        }
+		if(!strcmp("En Horario", statusFlight)) // En Horario
+		{
+			retorno = 1;
+		}
+		else
+		{
+			if(!strcmp("Aterrizado", statusFlight)) // Aterrizado
+			{
+				retorno = 2;
+			}
+			else
+			{
+				if(!strcmp("Demorado", statusFlight)) // Demorado
+				{
+					retorno = 3;
+				}
+				else
+				{
+					if(!strcmp("En Vuelo", statusFlight)) // En Vuelo
+					{
+						retorno = 4;
+					}
+				}
+			}
+		}
+	}
+	return retorno;
+}
 
+int passenger_readTypePassengerChar(char* typePassenger){
+	int retorno = -1;
+	if(typePassenger != NULL)
+	{
+		if(!strcmp("EconomyClass", typePassenger)) // EconomyClass
+		{
+			retorno = 1;
+		}
+		else
+		{
+			if(!strcmp("ExecutiveClass", typePassenger)) // ExecutiveClass
+			{
+				retorno = 2;
+			}
+			else
+			{
+				if(!strcmp("FirstClass", typePassenger)) // FirstClass
+				{
+					retorno = 3;
+				}
+			}
+		}
+	}
+	return retorno;
+}
+
+int passenger_readStatusFlightInt(int statusFlight, char* charStatusFlight){
+	int retorno = -1;
+	if(statusFlight > 0 && charStatusFlight != NULL)
+	{
+		switch(statusFlight)
+			{
+			case 1:
+				strcpy(charStatusFlight, "En Horario");
+				retorno = 0;
+			break;
+			case 2:
+				strcpy(charStatusFlight, "Aterrizado");
+				retorno = 0;
+			break;
+			case 3:
+				strcpy(charStatusFlight, "Demorado");
+				retorno = 0;
+			break;
+			case 4:
+				strcpy(charStatusFlight, "En Vuelo");
+				retorno = 0;
+			break;
+			default:
+				charStatusFlight = NULL;
+				break;
+			}
+	}
+	return retorno;
+
+}
+
+int passenger_readTypePassengerInt(int typePassenger,char* charTypePassenger){
+	int retorno = -1;
+	if(typePassenger > 0 && charTypePassenger != NULL)
+	{
+		switch(typePassenger)
+		{
+		case 1:
+			strcpy(charTypePassenger, "EconomyClass");
+			retorno = 0;
+		break;
+		case 2:
+			strcpy(charTypePassenger, "ExecutiveClass");
+			retorno = 0;
+		break;
+		case 3:
+			strcpy(charTypePassenger, "FirstClass");
+			retorno = 0;
+		break;
+		default:
+			charTypePassenger = NULL;
+			break;
+		}
+	}
+	return retorno;
+}
+
+int passenger_sort(LinkedList* pArrayListPassenger){
+	int retorno = -1;
+	char opcionCriterio;
+	int opcionOrden;
+	if(pArrayListPassenger != NULL)
+	{
+		opcionCriterio = passenger_menuChar("A. Ordenar por nombre\nB. Ordenar por ID\nC. Ordenar por código de vuelo\n",'A','C');
+		switch(opcionCriterio)
+		{
+		case 'A':
+			opcionOrden = passenger_menuInt("0. Descendente\n1. Ascendente\n", 0, 1);
+			if(opcionOrden == 1)
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareByName, 1))
+				{
+					retorno = 0;
+				}
+			}
+			else
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareByName, 0))
+				{
+					retorno = 0;
+				}
+			}
+			break;
+		case 'B':
+			opcionOrden = passenger_menuInt("0. Descendente\n1. Ascendente\n", 0, 1);
+			if(opcionOrden == 1)
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareById, 1))
+				{
+					retorno = 0;
+				}
+			}
+			else
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareById, 0))
+				{
+					retorno = 0;
+				}
+			}
+			break;
+		case 'C':
+			opcionOrden = passenger_menuInt("0. Descendente\n1. Ascendente\n", 0, 1);
+			if(opcionOrden == 1)
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareByFlyCode, 1))
+				{
+					retorno = 0;
+				}
+			}
+			else
+			{
+				if(!ll_sort(pArrayListPassenger, passenger_compareByFlyCode, 0))
+				{
+					retorno = 0;
+				}
+			}
+			break;
+		}
+	}
+	return retorno;
+}
+
+int passenger_compareByName(void* p1, void* p2)
+{
+	Passenger* passenger1;
+	Passenger* passenger2;
+	char nombre1[NAME_LEN];
+	char nombre2[NAME_LEN];
+	int retorno = -2;
+	int comparacion;
+
+	if(p1 != NULL && p2 != NULL)
+	{
+		passenger1 = (Passenger*) p1;
+		passenger2 = (Passenger*) p2;
+		if( !(passenger_getName(passenger1, nombre1)) &&
+		!(passenger_getName(passenger2, nombre2)))
+		{
+			comparacion = strcmp(nombre1, nombre2);
+			if(comparacion > 0)
+			{
+				retorno = 1;
+			}
+			else
+			{
+				if(comparacion < 0)
+				{
+					retorno = -1;
+				}
+				else
+				{
+					retorno = 0;
+				}
+			}
+		}
+	}
+	return retorno;
+}
+
+int passenger_compareByFlyCode(void* p1, void* p2)
+{
+	Passenger* passenger1;
+	Passenger* passenger2;
+	char flyCode1[FLYCODE_LEN];
+	char flyCode2[FLYCODE_LEN];
+	int retorno = -2;
+	int comparacion;
+
+	if(p1 != NULL && p2 != NULL)
+	{
+		passenger1 = (Passenger*) p1;
+		passenger2 = (Passenger*) p2;
+		if( !(passenger_getFlyCode(passenger1, flyCode1)) &&
+		!(passenger_getFlyCode(passenger2, flyCode2)))
+		{
+			comparacion = strcmp(flyCode1, flyCode2);
+			if(comparacion > 0)
+			{
+				retorno = 1;
+			}
+			else
+			{
+				if(comparacion < 0)
+				{
+					retorno = -1;
+				}
+				else
+				{
+					retorno = 0;
+				}
+			}
+		}
+	}
+	return retorno;
+}
+
+
+int passenger_compareById(void* p1, void* p2)
+{
+	Passenger* passenger1;
+	Passenger* passenger2;
+	int comparacion;
+	int id1, id2;
+	comparacion = -2;
+	passenger1 = (Passenger*) p1;
+	passenger2 = (Passenger*) p2;
+	if( !(passenger_getId(passenger1, &id1)) &&
+		!(passenger_getId(passenger2, &id2)))
+	{
+		if(id1 > id2)
+		{
+			comparacion = 1;
+		}
+		else
+		{
+			if(id1 < id2)
+			{
+				comparacion = -1;
+			}
+			else
+			{
+				comparacion = 0;
+			}
+		}
+	}
+	return comparacion;
+}
+
+
+FlyCode* flycode_newFlyCode(void){
+
+	return (FlyCode*) malloc(sizeof(FlyCode)*1);
+}
+
+int flycode_setFlyCode(FlyCode* this, char* flyCode){
+	int retorno = -1;
+	if(this != NULL && flyCode != NULL)
+	{
+		strcpy(this->flyCode, flyCode);
+		retorno = 0;
+	}
+	return retorno;
+
+}
+
+int flycode_setStatusFlight(FlyCode* this, int statusFlight){
+	int retorno = -1;
+
+	if(this != NULL && statusFlight > 0)
+	{
+		this->statusFlight = statusFlight;
+		retorno = 0;
+	}
+	return retorno;
+
+}
+
+int flycode_promptFlyCode(LinkedList* pArrayFlyCodes, char* flyCode, int* statusFlight){
+
+	int retorno = -1;
+	char bufferCodigo[FLYCODE_LEN];
+	int bufferEstado;
+	int nuevoCodigoVuelo;
+
+	if(pArrayFlyCodes != NULL)
+	{
+		flycode_listFlyCodes(pArrayFlyCodes);
+		get_Entero("\n0. Para elegir un código de vuelo\n1.Para agregar uno nuevo a la lista\nOpción: ", &nuevoCodigoVuelo);
+		if(nuevoCodigoVuelo == 1 && !flycode_addNewFlyCode(pArrayFlyCodes))
+		{
+			flycode_listFlyCodes(pArrayFlyCodes);
+			printf("\nSe agregó el código de vuelo");
+		}
+		if(!flycode_getFlyCode(pArrayFlyCodes, bufferCodigo, &bufferEstado))
+		{
+			strcpy(flyCode, bufferCodigo);
+			*statusFlight = bufferEstado;
+			retorno = 0;
+		}
+	}
+	return retorno;
+}
+
+int flycode_getFlyCode(LinkedList* pArrayFlyCodes, char* flyCode, int* statusFlight){
+	int retorno = -1;
+	FlyCode* aux;
+	char bufferCodigo[FLYCODE_LEN];
+	int i, len;
+	if(pArrayFlyCodes != NULL && flyCode != NULL)
+	{
+		len = ll_len(pArrayFlyCodes);
+
+		while(retorno != 0)
+		{
+			get_String("\nCódigo de su vuelo: ", bufferCodigo, FLYCODE_LEN);
+			strupr(bufferCodigo);
+			for(i = 0; i < len; i++)
+			{
+				aux = (FlyCode*)ll_get(pArrayFlyCodes, i);
+				if(aux != NULL)
+				{
+					if(!strcmp(aux->flyCode,bufferCodigo))
+					{
+						retorno = 0;
+						strcpy(flyCode, aux->flyCode);
+						*statusFlight = aux->statusFlight;
+						break;
+					}
+				}
+			}
+			if(retorno != 0)
+			{
+				printf("\nCódigo de vuelo inexistente");
+			}
+		}
+	}
+	return retorno;
+}
+
+int flycode_addNewFlyCode(LinkedList* pArrayFlyCodes){
+	int retorno = -1;
+	FlyCode* auxCodigo;
+	char bufferCodigo[10];
+	char bufferEstado[15];
+	int estadoValido = 0;
+	char mensaje[40];
+	if(pArrayFlyCodes != NULL)
+	{
+		if(!flycode_getNewFlyCode(pArrayFlyCodes, bufferCodigo))
+		{
+			passenger_listStatusFlights();
+			while(estadoValido < 1)
+			{
+				sprintf(mensaje, "Estado del vuelo de %s: ", bufferCodigo);
+				get_String(mensaje, bufferEstado, 15);
+				estadoValido = passenger_readStatusFlightChar(bufferEstado);
+				if(estadoValido > 0)
+				{
+					break;
+				}
+				printf("\nError estado de vuelo inexistente\n");
+			}
+			auxCodigo = flycode_newFlyCode();
+			if(	auxCodigo != NULL &&
+				!flycode_setFlyCode(auxCodigo, bufferCodigo) &&
+				!flycode_setStatusFlight(auxCodigo, estadoValido) &&
+				!ll_add(pArrayFlyCodes, auxCodigo))
+			{
+				retorno = 0;
+			}
+		}
+	}
+	return retorno;
+}
+int flycode_listFlyCodes(LinkedList* pArrayFlyCodes){
+
+	int retorno = -1;
+	FlyCode* auxCodigo;
+	char bufferStatus[14];
+	int i, len;
+	if(pArrayFlyCodes != NULL)
+	{
+		len = ll_len(pArrayFlyCodes);
+		if(!ll_isEmpty(pArrayFlyCodes))
+		{
+			retorno = 0;
+
+			printf("\n| Fly code     | Status Flight   |\n");
+			for(i = 0; i < len; i++)
+			{
+				auxCodigo = ll_get(pArrayFlyCodes, i);
+				if(auxCodigo != NULL)
+				{
+					passenger_readStatusFlightInt(auxCodigo->statusFlight, bufferStatus);
+					if(bufferStatus != NULL)
+					{
+						printf("\n| %-13s| %-16s|", auxCodigo->flyCode,bufferStatus);
+					}
+
+				}
+			}
+
+		}
 	}
 
+
 	return retorno;
 }
-/**
-*\brief imprime todos los elementos cargados en la lista de la estructura Passenger
-*\param void* puntero a la estructura Passenger
-*\param return 0 si salio ok, -1 si fallo
-*/
-int Passenger_imprimirTodosLosPasajeros(LinkedList* pArrayListPassenger)
-{
-    int retorno = -1;
-    int i;
-    Passenger* this;
 
-    if(pArrayListPassenger != NULL)
-    {
-        printf("%5s %10s %10s %10s %10s %5s %5s \n\n","ID","NOMBRE","APELLIDO","PRECIO","CODIGO","TIPO PASAJERO","STATUS FLIGHT");
-        for(i=0 ; i<ll_len(pArrayListPassenger); i++)
-        {
-            if(i%150 == 0 && i != 0)
-            {
-                system("pause");
-            }
-          this = ll_get(pArrayListPassenger,i);
-          Passenger_imprimirPassenger(this);
-          retorno = 0;
-        }
-    }
-    return retorno;
+
+
+int flycode_getNewFlyCode(LinkedList* pArrayFlyCodes, char* string){
+	int retorno = -1;
+	int esValido = -1;
+	if(string != NULL)
+	{
+		while(esValido < 1)
+		{
+			get_String("\nCódigo de vuelo a agregar a la lista: ", string, FLYCODE_LEN);
+			esValido = flycode_isValidFlyCode(string);
+			if(esValido == 1)
+			{
+				retorno = 0;
+				break;
+			}
+			printf("\nError.Código invalido");
+		}
+	}
+	return retorno;
 }
 
+int flycode_isValidFlyCode(char* string){
 
+	int retorno = -1;
+	int largo, i;
+	if(string != NULL)
+	{
+		retorno = 1;
+		largo = strlen(string);
+		if(largo != 7)
+		{
+			return 0;
+		}
+		for(i = 0; i < largo && string[i] != '\0'; i++)
+		{
+			if(i == 0 || i == 1 || i == 6)
+			{
+				if(!(isalpha(string[i])))
+				{
+					retorno = 0;
+					break;
+				}
+				else
+				{
+					string[i] = toupper(string[i]);
+				}
+			}
+			else
+			{
+				if(i == 2 || i == 3|| i == 4|| i == 5)
+				{
+					if(!(isdigit(string[i])))
+					{
+						retorno = 0;
+						break;
+					}
+				}
+			}
+		}
 
-/**
-*\brief busca un pasajero por ID y devuelve su posicion
-*\param void* puntero a la estructura Passenger
-*\param return la posicion del empleado si salio ok, -1 si fallo
-*/
-int Passenger_buscarPorId(LinkedList* pAarrayPassengerList)
-{
-    int retorno = -1;
-    int id;
-    int i;
-    Passenger* auxPassenger;
-
-    Passenger_imprimirTodosLosPasajeros(pAarrayPassengerList);
-    getInt(&id,"Indique el ID que desea modificar\n","ID INVALIDO",0,ID_MAXIMO,2);
-
-    for(i=0; i<ll_len(pAarrayPassengerList); i++)
-    {
-        auxPassenger = ll_get(pAarrayPassengerList,i);
-        if(auxPassenger->id == id)
-        {
-            retorno = i;
-        }
-    }
-
-    return retorno;
+	}
+	return retorno;
 }
-
-

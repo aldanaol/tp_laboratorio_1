@@ -21,245 +21,161 @@
     10. Salir
 *****************************************************/
 
-int main()
+int main(void)
 {
 	setbuf(stdout, NULL);
-    int option;
-    int flag = 0;
-    int flagBinario = 0;
-    int id = 1000;
-    //int prueba;
 
-    LinkedList* pArrayListPassenger = ll_newLinkedList();
+    LinkedList* listaPasajeros;
+    LinkedList* listaCodigosDevuelo;
+    int opcion;
+	int banderaGuardadoArchivo = 0;
+	int banderaLecturaArchivo = 0;
+	int confirmacionGuardado;
+
+    listaPasajeros = ll_newLinkedList();
+    listaCodigosDevuelo = ll_newLinkedList();
+    controller_initFlyCodes(listaCodigosDevuelo);
+
     do{
-         system("cls");
-         printf(	 "Menu:\n\n"
-			 "1. Cargar los datos de los pasajeros desde el archivo data.csv (modo texto)\n"
-			 "2. Cargar los datos de los pasajeros desde el archivo data.csv (modo binario)\n"
-			 "3. Alta de pasajero\n"
-			 "4. Modificar datos de pasajero\n"
-			 "5. Baja de pasajero\n"
-			 "6. Listar pasajeros\n"
-			 "7. Ordenar pasajeros\n"
-			 "8. Guardar los datos de los pasajeros en el archivo data.csv (modo texto)\n"
-			 "9. Guardar los datos de los pasajeros en el archivo data.csv (modo binario)\n"
-			"10. Salir\n");
-    getInt(&option,"Elija una opcion\n","Opcion invalida\n",0,10,2);
-
-        switch(option)
+    	opcion = passenger_menuInt("\n1. Cargar los datos de los pasajeros desde archivo en modo texto\n2. Cargar los datos de los pasajeros desde archivo en modo binario\n3. Alta de pasajero\n4. Modificar datos de pasajero\n5. Baja de pasajero\n6. Listar pasajeros\n7. Ordenar\n8. Guardar los datos de los pasajeros en modo texto\n9. Guardar los datos de los pasajeros en modo binario\n10. Salir\n",1,10);
+        switch(opcion)
         {
             case 1:
-                if(flag == 0)
-                {
-                    if(controller_loadFromText("data.csv",pArrayListPassenger)==0)
-                    {
-                        printf("Lista cargada con exito\n");
-                        flag = 1;
-
-                    }
-
-                }
-                else
-                    {
-                        if(flag == 1)
-                        {
-                            printf("Ya se cargaron los archivos\n");
-
-                        }
-                    }
-
+				if(!controller_loadFromText("data.csv",listaPasajeros))
+				{
+					banderaLecturaArchivo = 1;
+					printf("Lista cargada con exito\n");
+				}
                 break;
             case 2:
-                if(flagBinario == 0 && flag == 0)
-                {
-                    if(controller_loadFromBinary("data.csv",pArrayListPassenger)==0)
-                    {
-                        printf("Archivo en binario cargado exitosamente\n");
-                        flagBinario = 1;
-
-                    }
-
-                }
-                else
-                {
-                    if(flag == 1)
-                    {
-                        printf("Ya se cargaron los archivos como texto\n");
-
-                    }
-                }
-
+				if(!controller_loadFromBinary("dataBin.bin",listaPasajeros))
+				{
+					banderaLecturaArchivo = 1;
+					printf("Archivo binario cargado exitosamente\n");
+				}
             	break;
-
             case 3:
-                system("cls");
-                if(flagBinario == 1)
-                {
-                    printf("Debe cerrar el programa y cargar la lista como texto\n");
-
-                }
-                else
-                {
-                    if(ll_len(pArrayListPassenger)!=0 && flag == 1)
-                    {
-                         if(controller_addPassenger(pArrayListPassenger,id)==0)
-                        {
-                            printf("Se cargo el nuevo pasajero\n");
-                            id++;
-
-                        }
-
-                    }
-                    else
-                    {
-                        printf("Debe cargar un archivo de texto primero\n");
-
-                    }
-                }
-
+            	if(controller_addPassenger(listaPasajeros, listaCodigosDevuelo) == 0)
+            	{
+            		printf("Pasajero cargado correctamente\n");
+            	}
+            	else
+            	{
+            		printf("Error: No se pudo cargar el pasajero\n");
+            	}
             	break;
-
             case 4:
-
-                if(flagBinario == 1)
-                {
-                    printf("Debe cerrar el programa y cargar la lista como texto\n");
-
-                }
-                else
-                {
-                  if(ll_len(pArrayListPassenger) != 0)
-                    {
-                       if(flag == 1)
-                        {
-                          controller_editPassenger(pArrayListPassenger);
-                        }
-                    }
-
-                    else
-                        {
-                            printf("Debe cargar primero un archivo\n");
-
-                        }
-                }
-
-                break;
-
+            	if(!ll_isEmpty(listaPasajeros))
+            	{
+            		if(!controller_editPassenger(listaPasajeros, listaCodigosDevuelo))
+            		{
+            			printf("\nPasajero modificado exitosamente.");
+            		}
+            		else
+            		{
+            			printf("\nNo se pudo modificar al pasajero");
+            		}
+            	}
+            	else
+            	{
+					printf("No hay pasajeros cargados\n");
+            	}
+            	break;
             case 5:
+            	if(!ll_isEmpty(listaPasajeros))
+            	{
+            		if(!controller_removePassenger(listaPasajeros))
+            		{
+            			printf("\nPasajero dado de baja exitosamente.");
+            		}
+            	}
+            	else
+            	{
+					printf("\nNo hay pasajeros cargados.\n");
 
-                if(flagBinario == 1)
-                {
-                    printf("Debe cerrar el programa y cargar la lista como texto\n");
-
-                }
-                else
-                {
-                  if(ll_len(pArrayListPassenger) != 0)
-                    {
-                       if(flag == 1)
-                        {
-                          controller_removePassenger(pArrayListPassenger);
-                        }
-                    }
-                    else
-                    {
-                       printf("Debe cargar primero un archivo\n");
-
-                    }
-                }
-
-                break;
-
+            	}
+            	break;
             case 6:
+            	if(!ll_isEmpty(listaPasajeros))
+            	{
 
-                if(flagBinario == 1)
-                {
-                    printf("Debe cerrar el programa y cargar la lista como texto\n");
-
-                }
-                else
-                {
-                     if(ll_len(pArrayListPassenger)!= 0)
-                        {
-                            if(flag == 1)
-                            {
-                            controller_ListPassenger(pArrayListPassenger);
-
-                            }
-                        }
-                        else
-                        {
-                           printf("Debe cargar primero un archivo\n");
-
-                        }
-                }
-
-                break;
-
+            		controller_ListPassenger(listaPasajeros);
+            	}
+            	else
+            	{
+					printf("Error.No hay pasajeros cargados en el sistema\n");
+            	}
+            	break;
             case 7:
+            	if(!ll_isEmpty(listaPasajeros))
+				{
+            		if(!controller_sortPassenger(listaPasajeros))
+					{
+						printf("\nSe ordenaron los pasajeros exitosamente\n");
+					}
+				}
+            	else
+            	{
+					printf("\Error.No hay pasajeros cargados\n");
+            	}
 
-                if(flagBinario == 1)
-                {
-                    printf("Debe cerrar el programa y cargar la lista como texto\n");
-
-                }
-                else
-                {
-                    if(ll_len(pArrayListPassenger)!= 0)
-                    {
-                      if(flag == 1)
-                        {
-                         controller_sortPassenger(pArrayListPassenger);
-                        }
-                    }
-                    else
-                    {
-                       printf("Debe cargar primero un archivo\n");
-
-                    }
-                }
-
-                break;
-
+            	break;
             case 8:
-
-                  if(flag == 1 || flagBinario == 1)
-                    {
-                      controller_saveAsText("data.csv",pArrayListPassenger);
-                      printf("Guardado exitoso\n");
-
-                    }
-                    else
-                    {
-                       printf("Se debe cargar primero el archivo como texto\n");
-
-                    }
-                break;
+            	if(!ll_isEmpty(listaPasajeros))
+            	{
+					if(banderaLecturaArchivo == 1)
+					{
+						controller_saveAsText("data2.csv", listaPasajeros);
+					}
+					else
+					{
+						printf("\nSe perderan los pasajeros cargados en el archivo\n");
+						get_Entero("Si desea guardarlo igualmente ingrese 1: ", &confirmacionGuardado);
+						if(confirmacionGuardado == 1 && !controller_saveAsText("data2.csv", listaPasajeros))
+						{
+							printf("\nArchivo de texto guardado correctamente\n");
+							banderaGuardadoArchivo = 1;
+						}
+					}
+            	}
+            	else
+            	{
+            		printf("\nError.No hay pasajeros cargados para guardar\n");
+            	}
+            	break;
             case 9:
-                 if(flagBinario == 1 || flag == 1)
-                    {
-                     controller_saveAsBinary("data.csv",pArrayListPassenger);
-                     printf("Guardado exitoso\n");
-                    }
-                    else
-                    {
-                        printf("Se debe cargar primero el archivo como binario\n");
-
-                    }
-
-                break;
-
+            	if(!ll_isEmpty(listaPasajeros))
+            	{
+					if(!controller_saveAsBinary("dataBin.bin", listaPasajeros))
+					{
+						printf("Guardado correctamente");
+						banderaGuardadoArchivo = 1;
+					}
+            	}
+            	else
+            	{
+            		printf("Error.No hay pasajeros cargados para guardar\n");
+            	}
+            	break;
             case 10:
-            	printf("Hasta la proxima!");
+            	if(banderaGuardadoArchivo == 0)
+            	{
+            		opcion = 0;
+            		printf("\nDebe guardar la lista antes de salir del sistema\n");
+            	}
+            	else
+            	{
+            		printf("\nHasta la proxima!\n");
+            	}
             	break;
-
             default:
-            	printf("Opcion incorrecta");
+            	printf("\nError.Ingrese una opcion correcta");
             	break;
-
         }
-    }while(option != 10);
-    return EXIT_SUCCESS;
+    }while(opcion != 10);
+
+    ll_deleteLinkedList(listaPasajeros);
+    ll_deleteLinkedList(listaCodigosDevuelo);
+
+    return 0;
 }
-
-
