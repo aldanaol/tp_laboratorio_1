@@ -11,6 +11,7 @@
 #include <string.h>
 #include "operaciones.h"
 #include "Utn_Get.h"
+#include "Menu.h"
 
 int main (void){
 
@@ -23,15 +24,14 @@ int main (void){
     int flagCostos=0;
 
 	do{
-		printf("\n1)Ingresar Km:\n2)Ingresar precio de vuelos:\n3)Calcular todos los costos:\n4)Informar resultados:\n5)Carga forzada de datos.\n6)Salir\n");
-		scanf("\n%d",&opcion);
 
+	    opcion=menu("\n1)Ingresar Km:\n2)Ingresar precio de vuelos:\n3)Calcular todos los costos:\n4)Informar resultados:\n5)Carga forzada de datos.\n6)Salir\n");
 		switch(opcion){
 
 		case 1:
 			if(flagKm==0)
 			{
-				km=PedirFloat("Ingrese los km","Error,intente nuevamente",1,100000000000);
+				km=PedirFloat("Ingrese los km","Error,intente nuevamente",1,1000000);
 				flagKm=1;
 			}
 			break;

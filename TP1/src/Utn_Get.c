@@ -21,3 +21,17 @@ float PedirFloat(char mensaje[],char mensajeError[],int min,int max){
 
 
 }
+
+int PedirNumero(char mensaje[],char mensajeError[],int min,int max){
+
+	int numero;
+
+	printf(mensaje);
+	scanf("\n%d", &numero);
+
+	while(numero<min || numero>max){
+		printf(mensajeError);
+		scanf("%d",&numero);
+	}
+	return numero;
+}

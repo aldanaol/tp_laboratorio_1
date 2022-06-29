@@ -110,10 +110,6 @@ float diferenciaPrecio(float precioLatam, float precioAA){
  * @param difPrecio
  */
 
-void mostrarCostos(float kmIngresados,float precioAA,float debitoAA, float creditoAA, float btcAA, float unitarioAA,float precioLatam, float debitoLatam, float creditoLatam, float btcLatam, float unitarioLatam, float difPrecio){
-
-	printf("\nKM INGRESADOS: %.2f\n\nPrecio Aerolineas: %.2f\na)Precio con tardeja de debito: $%.2f\nb)Precio con tarjeta de credito: $%.2f\nc)Precio pagando con bitcoin: %.2f\nd)Mostrar precio unitario: $%.2f\n\nPrecio Latam: $%.2f\na)Precio con tarjeta de debito: $%.2f\nb)Precio con tarjeta de credito: $%.2f\nc)Precio pagando con bitcoin: %.2f\nd)Mostrar precio unitario: $%.2f\n\nLa diferencia de precio es: $%.2f",kmIngresados,precioAA,debitoAA,creditoAA,btcAA,unitarioAA,precioLatam,debitoLatam,creditoLatam,btcLatam,unitarioLatam,difPrecio);
-}
 
 
 
