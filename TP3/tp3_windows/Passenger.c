@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "Passenger.h"
 #include "utn.h"
 #include "LinkedList.h"
 #include "Controller.h"
-
+#include "Gets.h"
 
 Passenger* passenger_new(void)
 {
